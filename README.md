@@ -115,6 +115,10 @@ https://mooc1.chaoxing.com/mycourse/studentstudy?chapterId=xxxx&courseId=xxxx...
 
 本项目仅供个人学习辅助与自动化技术学习交流使用。使用本工具可能违反平台服务条款或学校规定，由此产生的一切后果由使用者自行承担。请勿用于商业用途或大规模刷课。
 
+## 更新日志
+
+见 [CHANGELOG.md](CHANGELOG.md)。当前 **v1.1.0**：修复 7 项健壮性问题，其中一项会导致脚本"静默停摆"（CDP 请求永久挂起）。
+
 ## License
 
 [MIT](LICENSE)
