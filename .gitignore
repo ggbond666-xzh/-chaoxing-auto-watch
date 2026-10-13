@@ -1,0 +1,15 @@
+# 登录态 / 浏览器配置目录（体积大且含隐私，切勿提交）
+_auto-click/p/
+_auto-click/chrome-profile/
+
+# 运行日志
+_auto-click/monitor.log
+*.log
+
+# 个人课程地址（含班级/课程参数）
+_auto-click/url.txt
+
+# 调试产物
+_auto-click/_test.cmd
+_auto-click/out.txt
+_auto-click/err.txt
