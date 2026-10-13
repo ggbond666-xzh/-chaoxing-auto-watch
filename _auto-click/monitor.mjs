@@ -1,4 +1,4 @@
-// 超星学习通 自动挂机脚本 v1.1.0
+// 超星学习通 自动挂机脚本 v1.1.1
 // 1) 保持视频播放：被暂停后在 1.5 秒内自动续播（页面内保活钩子 + 6 秒巡检双保险）
 // 2) 视频弹题：自动选一个选项并提交（一直卡着就依次换下一个选项）
 // 3) 视频播完 / 视频被「章节测验」顶掉：自动目录跳转下一节继续播放
@@ -7,7 +7,7 @@
 import { appendFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '1.1.0';
+const VERSION = '1.1.1';
 const PORT = process.env.CDP_PORT || 9222;
 const INTERVAL = Number(process.env.INTERVAL_MS || 6000);
 const LOG = fileURLToPath(new URL('./monitor.log', import.meta.url));
@@ -49,9 +49,10 @@ function tick() {
   if (G.__chap !== chap) {
     G.__chap = chap; G.__endDone = false; G.__navAt = 0; G.__navWarned = false;
     G.__hbAt = 0; G.__hbCur = -1; G.__sawVideo = false; G.__noVideo = 0;
+    G.__lastCur = 0; G.__lastDur = 0;
   }
   if (v) G.__sawVideo = true;
-  // 视频元素连续两轮消失（module 还在）也算播放结束，避免刚好错过结束瞬间
+  if (v && dur > 0) { G.__lastCur = cur; G.__lastDur = dur; } // 记录本章最后已知的播放位置
   G.__noVideo = (mi && !v) ? (G.__noVideo || 0) + 1 : 0;
 
   // ---- 页面内保活：一旦被暂停立刻续播（任何位置有弹题都不抢）----
@@ -116,7 +117,10 @@ function tick() {
   }
 
   // ---- 视频结束（真结束 / 视频模块消失 / 视频元素连续消失）→ 目录跳转下一节 ----
-  const endedNow = (dur > 0 && cur >= dur - 1) || (G.__sawVideo && (!mi || G.__noVideo >= 2));
+  // v1.1.1 修复连环跳章：只有当本章视频确实播到接近结尾（最后 60 秒内）时，
+  // 才把"视频消失"当成播放结束。否则页面加载期间视频尚未出现就被误判成结束。
+  const nearEnd = G.__lastDur > 0 && G.__lastCur >= G.__lastDur - 60;
+  const endedNow = (dur > 0 && cur >= dur - 1) || (G.__sawVideo && nearEnd && (!mi || G.__noVideo >= 4));
   if (endedNow && !G.__endDone) {
     G.__endDone = true;
     G.__navAt = now + (dur > 0 && cur >= dur - 1 ? 1500 : 30000);
